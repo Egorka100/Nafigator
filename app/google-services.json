@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_number": "683150592816",
+    "project_id": "firebase-nafigator"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683150592816:android:19a124f0940a8b80",
+        "android_client_info": {
+          "package_name": "ru.nafigator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "683150592816-nm9ggsp9p4s0h5as388487v9f7e8j3hp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.nafigator",
+            "certificate_hash": "5C4D445DA9BDC3728B720B8315AEF7AF3E6808E1"
+          }
+        },
+        {
+          "client_id": "683150592816-4ab84harso8a4rceo8e8404g7tbu8jbm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLofMgadVqpUWWCanAgsQ8nClJQrXl678"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-91849997-1"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nafigator</string>
+    <string name="action_settings">Настройки</string>
+
+    <bool name="ga_reportUncaughtExceptions">true</bool>
+    <bool name="ga_debug">true</bool>
+    <bool name="ga_autoActivityTracking">true</bool>
+    <!-- Button text -->
+    <string name="btn_logout_from_google">Выйти</string>
+    <string name="btn_revoke_access">Очистить данные Google</string>
+    <string name="loading">Загрузка</string>
+
+
+
+    <string name="pattern1_title">A</string>
+    <string name="pattern2_title">B</string>
+    <string name="pattern3_title">C</string>
+    <string name="pattern4_title">D</string>
+</resources>
