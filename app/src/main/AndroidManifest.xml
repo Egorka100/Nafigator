@@ -18,7 +18,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".MyMapActivity"></activity>
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="43c252aa0a12020db89abdd5b0ec688dd561d89d" />
