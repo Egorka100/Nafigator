@@ -18,27 +18,34 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
 import java.util.List;
 
-import static ru.nafigator.R.id.map;
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.http.GET;
+import retrofit.http.Query;
 
-public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback {
+public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback{
     private TextView showaddress;
     private Button drop_menu;
     private Button show_all;
-
+    private Button choose_map;
     public GridLayout menus_buttons;
-
+    public MapFragment mapFragment;
     public HorizontalScrollView scroll_menu;
-
+    GoogleMap map;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(map);
+        mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         showaddress = (TextView) findViewById(R.id.showaddress);
 
@@ -50,10 +57,10 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         show_all.setOnClickListener(this);
         drop_menu=(Button) findViewById(R.id.drop_menu);
         drop_menu.setOnClickListener(this);
-
-
-
+        choose_map=(Button) findViewById(R.id.choose_map);
+        choose_map.setOnClickListener(this);
     }
+
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -63,8 +70,11 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                 break;
             case R.id.show_all:
                 drop_all_bottom_menu();
+            case R.id.choose_map:
+                showRoute();
         }
     }
+
     public void drop_all_bottom_menu(){
         if(scroll_menu.getVisibility()==View.GONE){
             show_all.setText("Меньше");
@@ -93,6 +103,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     }
     @Override
     public void onMapReady(GoogleMap map) {
+
         GPSTracker gps = new GPSTracker(this);
         double lat = gps.getLatitude();
         double lon = gps.getLongitude();
@@ -137,10 +148,78 @@ getaddress(lat,lon);
         try{
             address=coder.getFromLocation(lat,lon,5);
             Address location=address.get(0);
-            showaddress.setText(location.getAddressLine(1)+", "+location.getAddressLine(0));
+            showaddress.setText(location.getAddressLine(1)+", "+location.getAddressLine(0)+", "+lat+", "+lon);
         }catch (Exception e){
             showaddress.setText("Не могу получить адрес по координатам:"+lat+";"+lon);
         }
     }
+    //Класс точки маршрута движения
+    public class RouteResponse {
+
+        public List<Route> routes;
+
+        public String getPoints() {
+            return this.routes.get(0).overview_polyline.points;
+        }
+
+        class Route {
+            OverviewPolyline overview_polyline;
+        }
+
+        class OverviewPolyline {
+            String points;
+        }
+    }
+    //Интерфейс для запросак маршрута
+    public interface RouteApi {
+        @GET("/maps/api/directions/json")
+        void getRoute(
+                @Query(value = "origin", encodeValue = false) String position,
+                @Query(value = "destination", encodeValue = false) String destination,
+                @Query("sensor") boolean sensor,
+                @Query("language") String language,
+                Callback<RouteResponse> cb
+        );
+    }
+
+    // метод показа маршрута
+    public void showRoute(/*View view*/ ) {
+        //Переход от интерфейса к API
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint("https://maps.googleapis.com")
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+        RouteApi routeService = restAdapter.create(RouteApi.class);
+
+        //Вызов запроса на маршрут (асинхрон)
+        routeService.getRoute("45,38", "45,39", true, "ru", new Callback<RouteResponse>() {
+            public void success(RouteResponse arg0, retrofit.client.Response arg1) {
+                //Если прошло успешно, то декодируем маршрут в точки LatLng
+                List<LatLng> mPoints = PolyUtil.decode(arg0.getPoints());
+                //Строим полилинию
+                PolylineOptions line = new PolylineOptions();
+                line.width(4f).color(R.color.colorPrimary);
+                LatLngBounds.Builder latLngBuilder = new LatLngBounds.Builder();
+                for (int i = 0; i < mPoints.size(); i++) {
+
+                    line.add( mPoints.get(i));
+                    latLngBuilder.include(mPoints.get(i));
+                }
+                showaddress.setText(line.toString());
+
+                /*
+                map.addPolyline(line);
+                int size = getResources().getDisplayMetrics().widthPixels;
+                LatLngBounds latLngBounds = latLngBuilder.build();
+                CameraUpdate track = CameraUpdateFactory.newLatLngBounds(latLngBounds, size, size, 25);
+                map.moveCamera(track);*/
+            }
+            //Если запрос прошел неудачно
+            public void failure(RetrofitError arg0) {
+            }
+        });
+    }
+
 }
+
 
