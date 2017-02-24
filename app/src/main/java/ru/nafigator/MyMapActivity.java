@@ -12,6 +12,7 @@ import android.widget.GridLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -30,6 +31,8 @@ import retrofit.RetrofitError;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
+import static ru.nafigator.R.id.map;
+
 public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback{
     private TextView showaddress;
     private Button drop_menu;
@@ -38,21 +41,19 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public GridLayout menus_buttons;
     public MapFragment mapFragment;
     public HorizontalScrollView scroll_menu;
-    GoogleMap map;
+    GoogleMap map1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
+        mapFragment = ((MapFragment) getFragmentManager()
+                .findFragmentById(map));
         mapFragment.getMapAsync(this);
+
         showaddress = (TextView) findViewById(R.id.showaddress);
-
         menus_buttons=(GridLayout) findViewById(R.id.menus_buttons);
-
         scroll_menu=(HorizontalScrollView) findViewById(R.id.scroll_menu);
-
         show_all=(Button) findViewById(R.id.show_all);
         show_all.setOnClickListener(this);
         drop_menu=(Button) findViewById(R.id.drop_menu);
@@ -60,7 +61,6 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         choose_map=(Button) findViewById(R.id.choose_map);
         choose_map.setOnClickListener(this);
     }
-
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -103,7 +103,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     }
     @Override
     public void onMapReady(GoogleMap map) {
-
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        map1=map;
         GPSTracker gps = new GPSTracker(this);
         double lat = gps.getLatitude();
         double lon = gps.getLongitude();
@@ -183,7 +184,7 @@ getaddress(lat,lon);
     }
 
     // метод показа маршрута
-    public void showRoute(/*View view*/ ) {
+    public void showRoute() {
         //Переход от интерфейса к API
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint("https://maps.googleapis.com")
@@ -198,7 +199,7 @@ getaddress(lat,lon);
                 List<LatLng> mPoints = PolyUtil.decode(arg0.getPoints());
                 //Строим полилинию
                 PolylineOptions line = new PolylineOptions();
-                line.width(4f).color(R.color.colorPrimary);
+                line.width(10f).color(R.color.colorPrimary);
                 LatLngBounds.Builder latLngBuilder = new LatLngBounds.Builder();
                 for (int i = 0; i < mPoints.size(); i++) {
 
@@ -207,12 +208,12 @@ getaddress(lat,lon);
                 }
                 showaddress.setText(line.toString());
 
-                /*
-                map.addPolyline(line);
+
+                map1.addPolyline(line);
                 int size = getResources().getDisplayMetrics().widthPixels;
                 LatLngBounds latLngBounds = latLngBuilder.build();
                 CameraUpdate track = CameraUpdateFactory.newLatLngBounds(latLngBounds, size, size, 25);
-                map.moveCamera(track);*/
+                map1.moveCamera(track);
             }
             //Если запрос прошел неудачно
             public void failure(RetrofitError arg0) {
