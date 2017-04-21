@@ -1,11 +1,13 @@
 package ru.nafigator;
 
+
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.view.ContextMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -17,9 +19,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
@@ -31,9 +36,10 @@ import retrofit.RetrofitError;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
+import static ru.nafigator.R.drawable.marker;
 import static ru.nafigator.R.id.map;
 
-public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback{
+public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback,GoogleMap.OnMarkerClickListener{
     private TextView showaddress;
     private Button drop_menu;
     private Button show_all;
@@ -41,7 +47,11 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public GridLayout menus_buttons;
     public MapFragment mapFragment;
     public HorizontalScrollView scroll_menu;
-    GoogleMap map1;
+    public double mylat;
+    public double mylon;
+    public String MyPositionString,
+            SourcePositionString;
+    GoogleMap mapfortrack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +84,23 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                 showRoute();
         }
     }
-
+    private void init(){
+        mapfortrack.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+            }
+        });
+        mapfortrack.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                mapfortrack.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(marker))
+                        .position(latLng)
+                        .flat(false));
+                SourcePositionString=latLng.latitude+","+latLng.longitude;
+            }
+        });
+    }
     public void drop_all_bottom_menu(){
         if(scroll_menu.getVisibility()==View.GONE){
             show_all.setText("Меньше");
@@ -104,11 +130,12 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     @Override
     public void onMapReady(GoogleMap map) {
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        map1=map;
+        mapfortrack=map;
+        init();
         GPSTracker gps = new GPSTracker(this);
-        double lat = gps.getLatitude();
-        double lon = gps.getLongitude();
-        LatLng mapCenter = new LatLng(lat, lon);
+        mylat = gps.getLatitude();
+        mylon = gps.getLongitude();
+        LatLng mapCenter = new LatLng(mylat, mylon);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -121,7 +148,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         }
         map.setMyLocationEnabled(true);
 
-       // LatLng mapCenter = new LatLng(41.889, -10.622);
+        // LatLng mapCenter = new LatLng(41.889, -10.622);
 
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter, 15));
 
@@ -141,9 +168,11 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         // Анимация
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),
                 2000, null);
-getaddress(lat,lon);
+        getaddress(mylat,mylon);
     }
+
     public void getaddress(double lat, double lon){
+        MyPositionString=Double.toString(mylat)+","+Double.toString(mylon);
         Geocoder coder = new Geocoder(this);
         List<Address> address;
         try{
@@ -154,6 +183,15 @@ getaddress(lat,lon);
             showaddress.setText("Не могу получить адрес по координатам:"+lat+";"+lon);
         }
     }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        return false;
+    }
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+
     //Класс точки маршрута движения
     public class RouteResponse {
 
@@ -193,7 +231,7 @@ getaddress(lat,lon);
         RouteApi routeService = restAdapter.create(RouteApi.class);
 
         //Вызов запроса на маршрут (асинхрон)
-        routeService.getRoute("45,38", "45,39", true, "ru", new Callback<RouteResponse>() {
+        routeService.getRoute(MyPositionString, SourcePositionString, true, "ru", new Callback<RouteResponse>() {
             public void success(RouteResponse arg0, retrofit.client.Response arg1) {
                 //Если прошло успешно, то декодируем маршрут в точки LatLng
                 List<LatLng> mPoints = PolyUtil.decode(arg0.getPoints());
@@ -203,18 +241,17 @@ getaddress(lat,lon);
                 LatLngBounds.Builder latLngBuilder = new LatLngBounds.Builder();
                 for (int i = 0; i < mPoints.size(); i++) {
 
-                    line.add( mPoints.get(i));
+                    line.add(mPoints.get(i));
                     latLngBuilder.include(mPoints.get(i));
                 }
-                showaddress.setText(line.toString());
 
-
-                map1.addPolyline(line);
+                mapfortrack.addPolyline(line);
                 int size = getResources().getDisplayMetrics().widthPixels;
                 LatLngBounds latLngBounds = latLngBuilder.build();
                 CameraUpdate track = CameraUpdateFactory.newLatLngBounds(latLngBounds, size, size, 25);
-                map1.moveCamera(track);
+                mapfortrack.moveCamera(track);
             }
+
             //Если запрос прошел неудачно
             public void failure(RetrofitError arg0) {
             }
@@ -222,5 +259,4 @@ getaddress(lat,lon);
     }
 
 }
-
 

@@ -17,6 +17,7 @@ import android.util.Log;
 public class GPSTracker extends Service implements LocationListener
 {
 
+
     private final Context mContext;
 
     // flag for GPS status
@@ -155,6 +156,7 @@ public class GPSTracker extends Service implements LocationListener
 
     @Override
     public void onLocationChanged(Location location) {
+        getLocation();
     }
 
     @Override
