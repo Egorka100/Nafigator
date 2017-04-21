@@ -238,9 +238,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
         textView.setText("onConnectionFailed");
-        // be available.
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
     }
 

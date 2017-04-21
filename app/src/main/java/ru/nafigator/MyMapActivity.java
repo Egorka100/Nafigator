@@ -36,6 +36,7 @@ import retrofit.RetrofitError;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
+import static android.view.View.VISIBLE;
 import static ru.nafigator.R.drawable.marker;
 import static ru.nafigator.R.id.map;
 
@@ -52,6 +53,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public String MyPositionString,
             SourcePositionString;
     GoogleMap mapfortrack;
+    private View infoWindowContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +73,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         drop_menu.setOnClickListener(this);
         choose_map=(Button) findViewById(R.id.choose_map);
         choose_map.setOnClickListener(this);
+        infoWindowContainer=findViewById(R.id.container_popup);
+
     }
     @Override
     public void onClick(View v) {
@@ -88,6 +93,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         mapfortrack.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                infoWindowContainer.setVisibility(View.INVISIBLE);
             }
         });
         mapfortrack.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -104,7 +110,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public void drop_all_bottom_menu(){
         if(scroll_menu.getVisibility()==View.GONE){
             show_all.setText("Меньше");
-            scroll_menu.setVisibility(View.VISIBLE);
+            scroll_menu.setVisibility(VISIBLE);
         }
         else
         {
@@ -116,8 +122,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         if(menus_buttons.getVisibility()== View.GONE)
         {
             drop_menu.setText("Вниз");
-            menus_buttons.setVisibility(View.VISIBLE);
-            show_all.setVisibility(View.VISIBLE);
+            menus_buttons.setVisibility(VISIBLE);
+            show_all.setVisibility(VISIBLE);
         }
         else
         {
@@ -187,10 +193,15 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     @Override
     public boolean onMarkerClick(Marker marker) {
 
-        return false;
+        //заполняем и показываем окно
+        //…
+        infoWindowContainer.setVisibility(VISIBLE);
+        return true;
     }
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
+
+    }
 
     //Класс точки маршрута движения
     public class RouteResponse {
