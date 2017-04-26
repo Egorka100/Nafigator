@@ -4,10 +4,12 @@ package ru.nafigator;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.view.ContextMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -20,10 +22,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
@@ -40,7 +40,7 @@ import static android.view.View.VISIBLE;
 import static ru.nafigator.R.drawable.marker;
 import static ru.nafigator.R.id.map;
 
-public class MyMapActivity extends FragmentActivity implements View.OnClickListener,OnMapReadyCallback,GoogleMap.OnMarkerClickListener{
+public class MyMapActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
     private TextView showaddress;
     private Button drop_menu;
     private Button show_all;
@@ -53,7 +53,9 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public String MyPositionString,
             SourcePositionString;
     GoogleMap mapfortrack;
-    private View infoWindowContainer;
+    private LocationManager locationManager;
+    Location location;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,17 +67,18 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         mapFragment.getMapAsync(this);
 
         showaddress = (TextView) findViewById(R.id.showaddress);
-        menus_buttons=(GridLayout) findViewById(R.id.menus_buttons);
-        scroll_menu=(HorizontalScrollView) findViewById(R.id.scroll_menu);
-        show_all=(Button) findViewById(R.id.show_all);
+        menus_buttons = (GridLayout) findViewById(R.id.menus_buttons);
+        scroll_menu = (HorizontalScrollView) findViewById(R.id.scroll_menu);
+        show_all = (Button) findViewById(R.id.show_all);
         show_all.setOnClickListener(this);
-        drop_menu=(Button) findViewById(R.id.drop_menu);
+        drop_menu = (Button) findViewById(R.id.drop_menu);
         drop_menu.setOnClickListener(this);
-        choose_map=(Button) findViewById(R.id.choose_map);
+        choose_map = (Button) findViewById(R.id.choose_map);
         choose_map.setOnClickListener(this);
-        infoWindowContainer=findViewById(R.id.container_popup);
 
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
     }
+
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -89,11 +92,47 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                 showRoute();
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                1 * 1, 1, locationListener);
+        locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER, 1 * 1, 1,
+                locationListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.removeUpdates(locationListener);
+    }
+
     private void init(){
         mapfortrack.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                infoWindowContainer.setVisibility(View.INVISIBLE);
             }
         });
         mapfortrack.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -133,15 +172,15 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             scroll_menu.setVisibility(View.GONE);
         }
     }
+    public void gowith(double lat,double lon){
+        LatLng mapCenter=new LatLng(lat,lon);
+        mapfortrack.moveCamera(CameraUpdateFactory.newLatLng(mapCenter));
+    }
     @Override
     public void onMapReady(GoogleMap map) {
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mapfortrack=map;
         init();
-        GPSTracker gps = new GPSTracker(this);
-        mylat = gps.getLatitude();
-        mylon = gps.getLongitude();
-        LatLng mapCenter = new LatLng(mylat, mylon);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -152,33 +191,15 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        LatLng mapCenter=new LatLng(mylat,mylon);
         map.setMyLocationEnabled(true);
-
-        // LatLng mapCenter = new LatLng(41.889, -10.622);
-
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter, 15));
-
-        // Вращение камеры за маркером
-       /* map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.direction_arrow))
-                .position(mapCenter)
-                .flat(true)
-                .rotation(245));*/
-
-        CameraPosition cameraPosition = CameraPosition.builder()
-                .target(mapCenter)
-                .zoom(15)
-                .bearing(90)
-                .build();
+        mapfortrack.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter,17));
 
         // Анимация
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),
-                2000, null);
-        getaddress(mylat,mylon);
-    }
 
+        // getaddress(mylat,mylon);
+    }
     public void getaddress(double lat, double lon){
-        MyPositionString=Double.toString(mylat)+","+Double.toString(mylon);
         Geocoder coder = new Geocoder(this);
         List<Address> address;
         try{
@@ -189,20 +210,6 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             showaddress.setText("Не могу получить адрес по координатам:"+lat+";"+lon);
         }
     }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-
-        //заполняем и показываем окно
-        //…
-        infoWindowContainer.setVisibility(VISIBLE);
-        return true;
-    }
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
-
-    }
-
     //Класс точки маршрута движения
     public class RouteResponse {
 
@@ -268,6 +275,30 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             }
         });
     }
+    private LocationListener locationListener=new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            mylat=location.getLatitude();
+            mylon=location.getLongitude();
+            getaddress(mylat,mylon);
+            gowith(mylat,mylon);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
 
 }
-
