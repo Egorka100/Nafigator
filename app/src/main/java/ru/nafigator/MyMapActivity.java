@@ -194,10 +194,6 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         LatLng mapCenter=new LatLng(mylat,mylon);
         map.setMyLocationEnabled(true);
         mapfortrack.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter,17));
-
-        // Анимация
-
-        // getaddress(mylat,mylon);
     }
     public void getaddress(double lat, double lon){
         Geocoder coder = new Geocoder(this);
