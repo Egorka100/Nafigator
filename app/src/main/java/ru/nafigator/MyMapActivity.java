@@ -55,13 +55,14 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     GoogleMap mapfortrack;
     private LocationManager locationManager;
     Location location;
+    public boolean FlagForCamera;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
+        FlagForCamera=true;
         mapFragment = ((MapFragment) getFragmentManager()
                 .findFragmentById(map));
         mapFragment.getMapAsync(this);
@@ -89,7 +90,9 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             case R.id.show_all:
                 drop_all_bottom_menu();
             case R.id.choose_map:
+                choose_map.setVisibility(View.INVISIBLE);
                 showRoute();
+                FlagForCamera=true;
         }
     }
 
@@ -133,6 +136,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         mapfortrack.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                FlagForCamera=false;
             }
         });
         mapfortrack.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
@@ -143,6 +147,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                         .position(latLng)
                         .flat(false));
                 SourcePositionString=latLng.latitude+","+latLng.longitude;
+                choose_map.setVisibility(VISIBLE);
             }
         });
     }
@@ -191,9 +196,10 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        LatLng mapCenter=new LatLng(mylat,mylon);
         map.setMyLocationEnabled(true);
+        LatLng mapCenter=new LatLng(mylat,mylon);
         mapfortrack.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter,17));
+
     }
     public void getaddress(double lat, double lon){
         Geocoder coder = new Geocoder(this);
@@ -277,7 +283,10 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             mylat=location.getLatitude();
             mylon=location.getLongitude();
             getaddress(mylat,mylon);
+            if(FlagForCamera==true){
             gowith(mylat,mylon);
+            }
+            MyPositionString=mylat+","+mylon;
         }
 
         @Override
