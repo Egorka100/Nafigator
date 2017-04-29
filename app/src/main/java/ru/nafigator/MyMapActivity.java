@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
@@ -56,7 +57,7 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     private LocationManager locationManager;
     Location location;
     public boolean FlagForCamera;
-
+    private Polyline linefortrack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,7 +244,10 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
 
     // метод показа маршрута
     public void showRoute() {
-        //Переход от интерфейса к API
+        if(linefortrack!=null) {
+            linefortrack.remove();
+        }
+            //Переход от интерфейса к API
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint("https://maps.googleapis.com")
                 .setLogLevel(RestAdapter.LogLevel.FULL)
@@ -264,14 +268,13 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                     line.add(mPoints.get(i));
                     latLngBuilder.include(mPoints.get(i));
                 }
+                linefortrack = mapfortrack.addPolyline(line);
 
-                mapfortrack.addPolyline(line);
                 int size = getResources().getDisplayMetrics().widthPixels;
                 LatLngBounds latLngBounds = latLngBuilder.build();
                 CameraUpdate track = CameraUpdateFactory.newLatLngBounds(latLngBounds, size, size, 25);
                 mapfortrack.moveCamera(track);
             }
-
             //Если запрос прошел неудачно
             public void failure(RetrofitError arg0) {
             }
