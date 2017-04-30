@@ -103,12 +103,12 @@ public class MainActivity extends AppCompatActivity implements
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
         textView.setText("OnResume");
     }
+
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
         textView.setText("signIn");
     }
-
 
     private void signOut() {
         Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements
             updateUI(true);
         } else {        textView.setText("handle-");
 
-            // выход скрыте кнопок
+            // выход скрытие кнопок
             updateUI(false);
         }
     }
@@ -249,7 +249,6 @@ public class MainActivity extends AppCompatActivity implements
             mProgressDialog.setMessage(getString(R.string.loading));
             mProgressDialog.setIndeterminate(true);
         }
-
         mProgressDialog.show();
     }
 

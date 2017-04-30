@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,11 +26,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 import retrofit.Callback;
@@ -58,7 +64,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     Location location;
     public boolean FlagForCamera;
     private Polyline linefortrack;
-
+    final String FILE_NAME = "tracklog.txt";
+    private static final String text="dsadasd";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,9 +118,9 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                1 * 1, 1, locationListener);
+                1000 * 10, 10, locationListener);
         locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 1 * 1, 1,
+                LocationManager.NETWORK_PROVIDER, 1000 * 10, 10,
                 locationListener);
     }
 
@@ -149,6 +156,12 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                         .flat(false));
                 SourcePositionString=latLng.latitude+","+latLng.longitude;
                 choose_map.setVisibility(VISIBLE);
+            }
+        });
+        mapfortrack.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return false;
             }
         });
     }
@@ -280,6 +293,26 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             }
         });
     }
+    void writeFileSD(double lat,double lon) throws IOException {
+        // получаем путь к SD
+        File myFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + FILE_NAME);
+        if(!myFile.exists()){
+        myFile.createNewFile();
+            Toast.makeText(this, "Файл создан", Toast.LENGTH_SHORT).show();}
+        // формируем объект File, который содержит путь к файлу
+        try {
+            // открываем поток для записи
+            FileWriter fw=new FileWriter(myFile,true);
+            // пишем данные
+            fw.append("Latitude:"+lat+"\n"+"Longitude:"+lon+"\n"+"\n");
+            // закрываем поток
+            fw.close();
+            Toast.makeText(this, "Сох. точки...", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private LocationListener locationListener=new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
@@ -289,7 +322,12 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             if(FlagForCamera==true){
             gowith(mylat,mylon);
             }
-            MyPositionString=mylat+","+mylon;
+            MyPositionString=mylat+","+mylon+"\n";
+            try {
+                writeFileSD(mylat,mylon);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
