@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements
         // Стиль кнопки G+
         btnSignIn.setSize(SignInButton.SIZE_STANDARD);
         btnSignIn.setScopes(gso.getScopeArray());
-        onResume();
+        //onResume();
     }
 
     @Override

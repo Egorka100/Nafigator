@@ -21,8 +21,8 @@ android {
         applicationId "ru.nafigator"
         minSdkVersion 17
         targetSdkVersion 24
-        versionCode 8
-        versionName "8.0"
+        versionCode 10
+        versionName "10.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
