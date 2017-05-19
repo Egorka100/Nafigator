@@ -206,8 +206,6 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         mapfortrack.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                /*Intent marker_menu_screen=new Intent(MyMapActivity.this, MarkerMenu.class);
-                startActivity(marker_menu_screen);*/
                 showDialog(IDD_LIST_MARKER_MENU);
                 selectedmarkerposition=marker.getPosition();
                 getmarkeraddress(selectedmarkerposition.latitude,selectedmarkerposition.longitude);
@@ -232,6 +230,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                                 break;
                             case 1:
                                 Intent intent = new Intent(MyMapActivity.this,SaveMarkerForm.class);
+                                intent.putExtra("tLocation",selectedmarkerposition.latitude+";"+selectedmarkerposition.longitude);
+                                intent.putExtra("tAddress",sourceAddress);
                                 startActivity(intent);
                                 break;
                             case 2:

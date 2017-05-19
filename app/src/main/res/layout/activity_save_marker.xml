@@ -2,17 +2,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true">
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="true">
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:text="Name"
@@ -21,7 +15,7 @@
             android:layout_marginTop="10dp"/>
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPostalAddress"
             android:text="Address"
@@ -31,7 +25,7 @@
             android:layout_marginTop="10dp"/>
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Phone"
             android:inputType="phone"
@@ -41,7 +35,7 @@
             android:layout_marginTop="10dp"/>
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
             android:text="Email"
@@ -51,7 +45,7 @@
             android:layout_marginTop="10dp"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/tv_show_coordinates"
             android:text="Координаты:"
@@ -73,6 +67,6 @@
             android:id="@+id/test"
             android:visibility="invisible"/>
 
-    </RelativeLayout>
+
 
 </RelativeLayout>

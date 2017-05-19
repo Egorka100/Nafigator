@@ -27,8 +27,8 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-       /* MyMapActivity myMapActivity=new MyMapActivity();
-        FillInEt(null,myMapActivity.sourceAddress,null,null,myMapActivity.selectedmarkerposition.latitude+";"+myMapActivity.selectedmarkerposition.longitude);*/
+        MyMapActivity myMapActivity=new MyMapActivity();
+
 
         setContentView(R.layout.activity_save_marker);
 
@@ -46,6 +46,7 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
         tvLocation=(TextView) findViewById(R.id.tv_show_coordinates);
 
         dbHelper=new DBHelper(this);
+        FillInEt("name",getIntent().getStringExtra("tAddress"),"phone","email",getIntent().getStringExtra("tLocation"));
 }
 
     @Override
