@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:text="test"
             android:id="@+id/test"
-            android:visibility="invisible"/>
+            android:visibility="visible"/>
 
 
 

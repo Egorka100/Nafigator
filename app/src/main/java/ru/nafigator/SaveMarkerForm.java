@@ -2,6 +2,7 @@ package ru.nafigator;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -23,12 +24,11 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
     EditText etName,etEmail,etPhone,etAddress;
     TextView tvLocation;
     String name,address,email,phone;
+    Double dLat,dLng;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        MyMapActivity myMapActivity=new MyMapActivity();
-
 
         setContentView(R.layout.activity_save_marker);
 
@@ -46,7 +46,10 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
         tvLocation=(TextView) findViewById(R.id.tv_show_coordinates);
 
         dbHelper=new DBHelper(this);
-        FillInEt("name",getIntent().getStringExtra("tAddress"),"phone","email",getIntent().getStringExtra("tLocation"));
+        Intent intent = getIntent();
+        dLat=getIntent().getDoubleExtra("dLat",0);
+        dLng=getIntent().getDoubleExtra("dLng",0);
+        FillInEt("name",getIntent().getStringExtra("tAddress"),"phone","email",dLat,dLng);
 }
 
     @Override
@@ -68,6 +71,8 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
                 cv.put("address",email);
                 cv.put("phone",phone);
                 cv.put("email",email);
+                cv.put("lat",dLat);
+                cv.put("lng",dLng);
                 db.insert("mytable",null,cv);
                 Toast.makeText(getApplicationContext(),"Сохранение ",Toast.LENGTH_SHORT).show();
                 break;
@@ -97,11 +102,11 @@ public class SaveMarkerForm extends Activity implements View.OnClickListener {
         dbHelper.close();
     }
     //Заполняем поля
-    public void FillInEt(String tName,String tAddress,String tPhone,String tEmail,String tLocation){
+    public void FillInEt(String tName,String tAddress,String tPhone,String tEmail,Double dLat,Double dLng){
         etName.setText(tName);
         etAddress.setText(tAddress);
         etPhone.setText(tPhone);
         etEmail.setText(tEmail);
-        tvLocation.setText(tLocation);
+        tvLocation.setText(dLat.toString()+";"+dLng.toString());
 }
 }

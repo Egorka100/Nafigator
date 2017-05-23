@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -55,6 +57,9 @@ import static ru.nafigator.R.drawable.marker;
 import static ru.nafigator.R.id.map;
 
 public class MyMapActivity extends FragmentActivity implements View.OnClickListener, OnMapReadyCallback {
+    DBHelper dbHelper;
+
+
     private TextView showaddress;
 
     private Button drop_menu;
@@ -79,6 +84,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public boolean FlagForCamera;
     public int FlagForLogs;
 
+    public int marker_id;
+
     private Polyline linefortrack;
 
     final String FILE_NAME = "tracklog2.txt";
@@ -87,6 +94,11 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public double lng;
 
     private final int IDD_LIST_MARKER_MENU = 0;
+    public String test;
+
+    public String nameMarker;
+    public int idMarker;
+    public String latLngMarker;
 
     LatLng selectedmarkerposition;
 
@@ -123,6 +135,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
         writelog.setOnClickListener(this);
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        dbHelper=new DBHelper(this);
 
 
     }
@@ -209,10 +223,13 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                 showDialog(IDD_LIST_MARKER_MENU);
                 selectedmarkerposition=marker.getPosition();
                 getmarkeraddress(selectedmarkerposition.latitude,selectedmarkerposition.longitude);
+                SourcePositionString=selectedmarkerposition.latitude+","+selectedmarkerposition.longitude;
                 return true;
             }
         });
     }
+
+
 
     @Override
     protected Dialog onCreateDialog(int id) {
@@ -230,7 +247,8 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
                                 break;
                             case 1:
                                 Intent intent = new Intent(MyMapActivity.this,SaveMarkerForm.class);
-                                intent.putExtra("tLocation",selectedmarkerposition.latitude+";"+selectedmarkerposition.longitude);
+                                intent.putExtra("dLat",selectedmarkerposition.latitude);
+                                intent.putExtra("dLng",selectedmarkerposition.longitude);
                                 intent.putExtra("tAddress",sourceAddress);
                                 startActivity(intent);
                                 break;
@@ -285,6 +303,30 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
     public void onMapReady(GoogleMap map) {
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mapfortrack=map;
+        map.setMyLocationEnabled(true);
+        LatLng mapCenter=new LatLng(mylat,mylon);
+        mapfortrack.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter,17));
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        Cursor c = db.query("mytable", null, null, null, null, null, null);
+        if(c.moveToFirst()){
+            int idColIndex=c.getColumnIndex("id");
+            int nameColIndex=c.getColumnIndex("name");
+            int latCollIndex=c.getColumnIndex("lat");
+            int lngCollIndex=c.getColumnIndex("lng");
+
+            do{
+                LatLng positionMarker=new LatLng(c.getDouble(latCollIndex),c.getDouble(lngCollIndex));
+                nameMarker=c.getString(nameColIndex);
+                idMarker=c.getInt(idColIndex);
+                mapfortrack.addMarker(new MarkerOptions()
+                        .title(nameMarker)
+                        .icon(BitmapDescriptorFactory.fromResource(marker))
+                        .position(positionMarker)
+                        .flat(false));
+            }
+            while(c.moveToNext());
+        }
+        c.close();
         init();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -296,16 +338,11 @@ public class MyMapActivity extends FragmentActivity implements View.OnClickListe
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        map.setMyLocationEnabled(true);
-        LatLng mapCenter=new LatLng(mylat,mylon);
-        mapfortrack.moveCamera(CameraUpdateFactory.newLatLngZoom(mapCenter,17));
-
     }
     public void getmarkeraddress(double lat,double lon){
         Geocoder coder = new Geocoder(this);
         List<Address> address;
         try{
-
             address=coder.getFromLocation(lat,lon,5);
             Address location=address.get(0);
             sourceAddress=location.getAddressLine(1)+", "+location.getAddressLine(0);

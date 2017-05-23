@@ -15,7 +15,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // создаем таблицу с полями
-        db.execSQL("create table mytable ("+"id integer primary key autoincrement,"+"name text,"+"address text,"+"phone text,"+"email text"+");");
+        db.execSQL("create table mytable ("+"id integer primary key autoincrement,"+"name text,"+"address text,"+"phone text,"+"email text,"+"lat double,"+"lng double"+");");
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
